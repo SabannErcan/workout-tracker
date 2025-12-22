@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Workout" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+  
+  <!-- SEO -->
+  <meta name="description" content="Simple et puissant tracking d'entraînement musculation - PWA optimisée iPhone" />
+  <meta name="keywords" content="workout, tracker, musculation, fitness, gym, entraînement" />
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.svg" />
+  
+  <!-- Splash Screens iOS -->
+  <link rel="apple-touch-startup-image" href="/icons/icon-512.svg" />
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  
+  <title>Workout Tracker</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <style>
+    /* Critical CSS pour éviter flash blanc */
+    html, body, #root {
+      background-color: #000000;
+      color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    
+    /* Loading state */
+    .app-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background-color: #000000;
+    }
+    
+    .app-loading::after {
+      content: '';
+      width: 32px;
+      height: 32px;
+      border: 3px solid #38383A;
+      border-top-color: #0A84FF;
+      border-radius: 50%;
+      animation: spinner 0.8s linear infinite;
+    }
+    
+    @keyframes spinner {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="app-loading"></div>
+  <script type="module" src="/src/index.jsx"></script>
+</body>
+</html>

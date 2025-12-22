@@ -1,0 +1,59 @@
+{
+  "name": "Workout Tracker Pro",
+  "short_name": "Workout",
+  "description": "Simple et puissant tracking d'entraînement musculation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0A84FF",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "fr",
+  "dir": "ltr",
+  
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  
+  "shortcuts": [
+    {
+      "name": "Démarrer Entraînement",
+      "short_name": "Workout",
+      "description": "Démarrer rapidement une séance",
+      "url": "/?action=start",
+      "icons": [
+        {
+          "src": "/icons/icon-192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Historique",
+      "short_name": "History",
+      "description": "Voir l'historique des séances",
+      "url": "/?screen=history",
+      "icons": [
+        {
+          "src": "/icons/icon-192.svg",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  
+  "categories": ["health", "fitness", "lifestyle"],
+  
+  "prefer_related_applications": false
+}
