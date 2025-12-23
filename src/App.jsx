@@ -189,25 +189,30 @@ function App() {
     <div className="min-h-screen min-h-[100dvh] bg-dark-bg text-white flex flex-col">
       {/* Notification de mise à jour disponible */}
       {updateAvailable && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-primary px-4 py-3 flex items-center justify-between safe-area-top animate-slide-down">
-          <div className="flex items-center gap-2">
-            <RefreshCw size={18} />
-            <span className="text-sm font-medium">Mise à jour disponible</span>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary-active px-4 py-3 flex items-center justify-between safe-area-top animate-slide-down shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center animate-spin-slow">
+              <RefreshCw size={16} />
+            </div>
+            <div>
+              <div className="text-sm font-semibold">Mise à jour disponible</div>
+              <div className="text-xs opacity-90">Nouvelle version prête à installer</div>
+            </div>
           </div>
           <button 
             onClick={applyUpdate}
-            className="px-3 py-1 bg-white/20 rounded-lg text-sm font-medium"
+            className="px-4 py-2 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-white/90 active:scale-95 transition-all"
           >
-            Mettre à jour
+            Installer
           </button>
         </div>
       )}
       
-      {/* Indicateur hors ligne */}
+      {/* Indicateur hors ligne - Design amélioré */}
       {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 z-40 bg-warning/90 px-4 py-2 flex items-center justify-center gap-2 safe-area-top">
-          <WifiOff size={16} />
-          <span className="text-sm font-medium text-black">Mode hors ligne</span>
+        <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2.5 flex items-center justify-center gap-2 safe-area-top shadow-lg">
+          <WifiOff size={16} className="animate-pulse" />
+          <span className="text-sm font-semibold text-white">Mode hors ligne - Données sauvegardées localement</span>
         </div>
       )}
       
@@ -219,6 +224,13 @@ function App() {
       {/* Bottom Navigation - Toujours visible sauf pendant workout actif */}
       {!(currentWorkout && currentScreen === SCREENS.WORKOUT) && (
         <nav className="fixed bottom-0 left-0 right-0 bg-dark-surface border-t border-dark-border safe-area-bottom">
+          {/* Indicateur de statut en haut de la nav */}
+          {(!isOnline || updateAvailable) && (
+            <div className="absolute top-0 left-0 right-0 h-0.5">
+              {!isOnline && <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 animate-pulse" />}
+              {updateAvailable && <div className="h-full bg-gradient-to-r from-primary to-primary-active animate-pulse" />}
+            </div>
+          )}
           <div className="flex items-center justify-around h-16">
             <NavButton 
               icon={Target}

@@ -312,6 +312,16 @@ body {
   animation: swipeHint 1.5s ease-in-out 2;
 }
 
+/* Spin slow animation for update indicator */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
 /* Progress bar styles */
 .progress-bar {
   height: 4px;
