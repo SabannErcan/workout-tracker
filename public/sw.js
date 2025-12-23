@@ -1,6 +1,6 @@
 // Service Worker - Workout Tracker PWA
-// Version utilisée pour cache busting
-const CACHE_VERSION = 'v1.0.0';
+// Version utilisée pour cache busting - Changez ce numéro à chaque mise à jour
+const CACHE_VERSION = 'v1.0.1';
 const CACHE_NAME = `workout-tracker-${CACHE_VERSION}`;
 
 // Ressources à mettre en cache pour fonctionnement offline
