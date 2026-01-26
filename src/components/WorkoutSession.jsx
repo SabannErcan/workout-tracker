@@ -10,7 +10,8 @@ import {
   Dumbbell,
   TrendingUp,
   AlertCircle,
-  Minus
+  Minus,
+  MapPin
 } from 'lucide-react'
 import { formatTimer, formatDuration } from '../utils/dateHelpers'
 import { formatVolume, calculateOneRepMax, detectPR } from '../utils/calculations'
@@ -27,8 +28,12 @@ function WorkoutSession({ workoutData, onFinish, onCancel }) {
     deleteSet,
     addExerciseNote,
     addExerciseToWorkout,
-    defaultExercises 
+    defaultExercises,
+    gyms
   } = workoutData
+  
+  // Trouver le nom de la salle actuelle
+  const currentGymName = gyms?.find(g => g.id === currentWorkout?.gymId)?.name
   
   // États locaux
   const [expandedExercise, setExpandedExercise] = useState(
@@ -147,6 +152,13 @@ function WorkoutSession({ workoutData, onFinish, onCancel }) {
             <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
               <Clock size={12} />
               <span className="timer-display">{formatDuration(elapsedTime)}</span>
+              {currentGymName && (
+                <>
+                  <span>•</span>
+                  <MapPin size={12} />
+                  <span>{currentGymName}</span>
+                </>
+              )}
             </div>
           </div>
           

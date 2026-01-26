@@ -15,9 +15,12 @@ import {
   Scale,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Dumbbell
 } from 'lucide-react'
 import { exportToJSON, importFromJSON, getStorageUsage, clearAllData } from '../utils/storage'
+import GymSelector from './GymSelector'
+import GymComparison from './GymComparison'
 
 /**
  * Réglages améliorés - Tout fonctionne !
@@ -172,6 +175,33 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
               </div>
             </div>
           </SettingCard>
+        </Section>
+        
+        {/* Section Salles de Sport */}
+        <Section title="Salles de Sport">
+          <SettingCard>
+            <div className="p-4">
+              <GymSelector
+                gyms={workoutData.gyms}
+                currentGym={userSettings.currentGym}
+                onSelectGym={workoutData.selectGym}
+                onUpdateGyms={workoutData.updateGyms}
+              />
+            </div>
+          </SettingCard>
+          
+          {/* Comparaison entre salles */}
+          {workoutData.gyms.length > 0 && (
+            <SettingCard>
+              <div className="p-4">
+                <GymComparison
+                  workoutHistory={workoutHistory}
+                  gyms={workoutData.gyms}
+                  currentGym={userSettings.currentGym}
+                />
+              </div>
+            </SettingCard>
+          )}
         </Section>
         
         {/* Section Timer */}

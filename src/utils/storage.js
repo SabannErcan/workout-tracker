@@ -29,6 +29,9 @@ export const STORAGE_KEYS = {
   CURRENT_WORKOUT: 'currentWorkout',
   USER_EXERCISES: 'userExercises', // Exercices personnalisés ajoutés par l'utilisateur
   FAVORITE_EXERCISES: 'favoriteExercises', // IDs des exercices favoris
+  GYMS: 'gyms', // Salles de sport
+  CURRENT_GYM: 'currentGym', // Salle active
+  EXERCISE_USAGE: 'exerciseUsage', // Compteur d'usage des exercices
 }
 
 // Version actuelle des données (pour migrations futures)
@@ -44,6 +47,7 @@ const DEFAULT_SETTINGS = {
   showLastWorkout: true,
   autoStartRest: true,
   language: 'fr', // Langue par défaut
+  currentGym: null, // Salle de sport actuelle
 }
 
 // Mapping des catégories pour compatibilité avec l'ancien format simple

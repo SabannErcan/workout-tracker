@@ -39,6 +39,12 @@ export function useWorkoutData() {
     getDefaultSettings()
   )
   
+  // Salles de sport
+  const [gyms, setGyms] = useLocalStorage(
+    STORAGE_KEYS.GYMS,
+    []
+  )
+  
   // Workout en cours (sauvegarde immédiate pour éviter perte de données)
   const [currentWorkout, setCurrentWorkout] = useLocalStorageImmediate(
     STORAGE_KEYS.CURRENT_WORKOUT, 
@@ -182,6 +188,7 @@ export function useWorkoutData() {
       date: new Date().toISOString(),
       startTime: new Date().toISOString(),
       endTime: null,
+      gymId: userSettings.currentGym || null, // Salle de sport actuelle
       exercises: template.exercises.map((ex) => ({
         exerciseId: ex.id,
         name: ex.name,
@@ -198,7 +205,7 @@ export function useWorkoutData() {
     
     setCurrentWorkout(workout)
     return workout
-  }, [sessionTemplates, workoutHistory, setCurrentWorkout])
+  }, [sessionTemplates, workoutHistory, userSettings, setCurrentWorkout])
   
   /**
    * Démarre un workout vide (sans template)
@@ -211,6 +218,7 @@ export function useWorkoutData() {
       date: new Date().toISOString(),
       startTime: new Date().toISOString(),
       endTime: null,
+      gymId: userSettings.currentGym || null, // Salle de sport actuelle
       exercises: [],
       totalVolume: 0,
       duration: 0,
@@ -219,7 +227,7 @@ export function useWorkoutData() {
     
     setCurrentWorkout(workout)
     return workout
-  }, [setCurrentWorkout])
+  }, [userSettings, setCurrentWorkout])
   
   /**
    * Ajoute un exercice au workout en cours
@@ -639,6 +647,7 @@ export function useWorkoutData() {
     userSettings,
     currentWorkout,
     defaultExercises,
+    gyms,
     
     // Templates
     addTemplate,
@@ -665,6 +674,10 @@ export function useWorkoutData() {
     // Settings
     updateSetting,
     resetSettings,
+    
+    // Gyms
+    updateGyms: setGyms,
+    selectGym: (gymId) => setUserSettings(prev => ({ ...prev, currentGym: gymId })),
     
     // Helpers
     getExerciseHistory,

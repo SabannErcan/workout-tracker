@@ -44,10 +44,28 @@ export default function ExerciseTracker({ workoutData }) {
     loadData(STORAGE_KEYS.FAVORITE_EXERCISES, [])
   )
   
+  // Compteur d'usage des exercices
+  const [exerciseUsage, setExerciseUsage] = useState(() => 
+    loadData(STORAGE_KEYS.EXERCISE_USAGE, {})
+  )
+  
   // Sauvegarder les favoris quand ils changent
   useEffect(() => {
     saveData(STORAGE_KEYS.FAVORITE_EXERCISES, favorites)
   }, [favorites])
+  
+  // Calculer l'usage à partir de l'historique
+  useEffect(() => {
+    const usage = {}
+    workoutHistory.forEach(workout => {
+      workout.exercises?.forEach(ex => {
+        const key = ex.exerciseId || ex.name
+        usage[key] = (usage[key] || 0) + 1
+      })
+    })
+    setExerciseUsage(usage)
+    saveData(STORAGE_KEYS.EXERCISE_USAGE, usage)
+  }, [workoutHistory])
   
   // Toggle favori
   const toggleFavorite = useCallback((exerciseId) => {
@@ -64,16 +82,26 @@ export default function ExerciseTracker({ workoutData }) {
     return exerciseLibrary.filter(ex => favorites.includes(ex.id))
   }, [favorites])
   
-  // Exercices filtrés par catégorie
+  // Exercices filtrés par catégorie et triés par usage
   const exercisesByCategory = useMemo(() => {
     const grouped = {}
     MUSCLE_CATEGORIES.forEach(cat => {
-      grouped[cat.id] = exerciseLibrary.filter(ex => 
+      // Filtrer par catégorie
+      let exercises = exerciseLibrary.filter(ex => 
         cat.muscles.includes(ex.category?.primary)
       )
+      
+      // Trier par usage (les plus utilisés en premier)
+      exercises = exercises.sort((a, b) => {
+        const usageA = exerciseUsage[a.id] || 0
+        const usageB = exerciseUsage[b.id] || 0
+        return usageB - usageA // Ordre décroissant
+      })
+      
+      grouped[cat.id] = exercises
     })
     return grouped
-  }, [])
+  }, [exerciseUsage])
   
   // Recherche globale
   const searchResults = useMemo(() => {
