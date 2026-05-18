@@ -508,13 +508,14 @@ export function useWorkoutData() {
    * Mode "quick log" pour suivi par exercice
    */
   const logQuickExercise = useCallback((data) => {
-    const { exerciseId, name, weight, reps, sets = 1, date = new Date().toISOString() } = data
-    
-    // Chercher si on a déjà un workout "quick log" pour aujourd'hui
+    const { exerciseId, name, weight, reps, sets = 1, date = new Date().toISOString(), gymId = userSettings.currentGym || null } = data
+
+    // Chercher si on a déjà un workout "quick log" pour aujourd'hui ET cette salle
     const today = new Date(date).toDateString()
-    let todayWorkout = workoutHistory.find(w => 
-      w.templateName === 'Quick Log' && 
-      new Date(w.date).toDateString() === today
+    let todayWorkout = workoutHistory.find(w =>
+      w.templateName === 'Quick Log' &&
+      new Date(w.date).toDateString() === today &&
+      w.gymId === gymId
     )
     
     if (todayWorkout) {
@@ -584,6 +585,7 @@ export function useWorkoutData() {
         date,
         startTime: date,
         endTime: date,
+        gymId,
         exercises: [{
           exerciseId,
           name,

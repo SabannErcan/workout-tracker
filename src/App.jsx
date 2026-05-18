@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { 
-  Home, 
-  Dumbbell, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Home,
+  Dumbbell,
+  Calendar,
   Settings as SettingsIcon,
   Wifi,
   WifiOff,
@@ -253,13 +252,7 @@ function App() {
               isActive={currentScreen === SCREENS.HISTORY}
               onClick={() => navigate(SCREENS.HISTORY)}
             />
-            <NavButton 
-              icon={TrendingUp}
-              label="Stats"
-              isActive={currentScreen === SCREENS.STATS}
-              onClick={() => navigate(SCREENS.STATS)}
-            />
-            <NavButton 
+            <NavButton
               icon={SettingsIcon}
               label="Réglages"
               isActive={currentScreen === SCREENS.SETTINGS}

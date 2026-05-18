@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
-import { 
-  ChevronLeft, 
-  Plus, 
-  TrendingUp, 
+import {
+  ChevronLeft,
+  Plus,
+  TrendingUp,
   Clock,
   Weight,
   Target,
@@ -12,8 +12,17 @@ import {
   ChevronRight,
   Flame,
   History,
-  Star
+  Star,
+  MapPin
 } from 'lucide-react'
+
+const GYM_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4']
+
+function getGymColor(gymId, gyms) {
+  const idx = gyms?.findIndex(g => g.id === gymId) ?? -1
+  if (idx >= 0) return GYM_COLORS[idx % GYM_COLORS.length]
+  return '#3B82F6'
+}
 import { exerciseLibrary } from '../data/exercises/index.js'
 import { loadData, saveData, STORAGE_KEYS } from '../utils/storage.js'
 
@@ -31,7 +40,7 @@ const MUSCLE_CATEGORIES = [
  * Composant principal - Vue par exercice
  */
 export default function ExerciseTracker({ workoutData }) {
-  const { workoutHistory, logQuickSet, getExerciseHistory } = workoutData
+  const { workoutHistory, logQuickSet, getExerciseHistory, gyms, userSettings } = workoutData
   
   // États
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -129,7 +138,8 @@ export default function ExerciseTracker({ workoutData }) {
                 date: workout.date,
                 weight: set.weight,
                 reps: set.reps,
-                workoutId: workout.id
+                workoutId: workout.id,
+                gymId: workout.gymId || null,
               })
             }
           })
@@ -168,9 +178,10 @@ export default function ExerciseTracker({ workoutData }) {
         personalRecord={personalRecord}
         lastPerformance={lastPerformance}
         workoutData={workoutData}
+        gyms={gyms}
+        currentGym={userSettings?.currentGym || null}
         onBack={() => {
           setSelectedExercise(null)
-          // Si on n'était pas dans une catégorie, on reste à l'accueil
         }}
       />
     )
@@ -542,28 +553,46 @@ function RecentExercises({ workoutHistory, onSelect }) {
 /**
  * Vue détail d'un exercice avec historique et ajout rapide
  */
-function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, workoutData, onBack }) {
+function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, workoutData, gyms, currentGym, onBack }) {
   const [showAddSet, setShowAddSet] = useState(false)
   const [weight, setWeight] = useState(lastPerformance?.weight?.toString() || '')
   const [reps, setReps] = useState(lastPerformance?.reps?.toString() || '')
   const [sets, setSets] = useState('1')
+
+  // Dernière perf par salle (history trié du plus récent au plus ancien)
+  const gymStats = useMemo(() => {
+    if (!gyms || gyms.length === 0) return []
+    const seen = {}
+    for (const h of history) {
+      if (!h.gymId) continue
+      if (seen[h.gymId]) continue
+      seen[h.gymId] = {
+        gymId: h.gymId,
+        gymName: gyms.find(g => g.id === h.gymId)?.name ?? h.gymId,
+        weight: h.weight,
+        reps: h.reps,
+        date: h.date,
+      }
+    }
+    return Object.values(seen)
+  }, [history, gyms])
   
   // Fonction pour ajouter une série rapide
   const handleAddSet = () => {
     if (!weight || !reps) return
-    
+
     const numSets = parseInt(sets) || 1
-    
-    // Ajouter à l'historique via workoutData
+
     workoutData.logQuickExercise({
       exerciseId: exercise.id,
       name: exercise.nameTranslations?.fr || exercise.name,
       weight: parseFloat(weight),
       reps: parseInt(reps),
       sets: numSets,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      gymId: currentGym,
     })
-    
+
     setShowAddSet(false)
   }
   
@@ -600,38 +629,77 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
       </header>
       
       {/* Stats rapides */}
-      <div className="p-4 grid grid-cols-2 gap-3">
-        {/* Record personnel */}
-        <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/30">
-          <div className="flex items-center gap-2 mb-2">
-            <Flame size={18} className="text-yellow-500" />
-            <span className="text-sm text-text-secondary">Record</span>
+      <div className="px-4 pt-4 pb-2 space-y-3">
+
+        {/* Par salle — section principale si données disponibles */}
+        {gymStats.length > 0 ? (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <MapPin size={14} className="text-text-secondary" />
+              <span className="text-xs uppercase tracking-widest text-text-secondary font-semibold">Par salle</span>
+            </div>
+            <div className="space-y-2">
+              {gymStats.map(({ gymId, gymName, weight: w, reps: r }) => {
+                const color = getGymColor(gymId, gyms)
+                const isActive = gymId === currentGym
+                return (
+                  <div
+                    key={gymId}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3"
+                    style={{
+                      backgroundColor: isActive ? `${color}22` : `${color}0d`,
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderColor: isActive ? `${color}66` : `${color}33`,
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold truncate" style={{ color }}>{gymName}</div>
+                      <div className="text-xs text-text-secondary mt-0.5">dernière fois</div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-white">{w}</span>
+                      <span className="text-sm text-text-secondary ml-1">kg</span>
+                      <div className="text-xs text-text-secondary">× {r} reps</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
-          {personalRecord ? (
-            <>
-              <div className="text-2xl font-bold">{personalRecord.weight} kg</div>
-              <div className="text-sm text-text-secondary">× {personalRecord.reps} reps</div>
-            </>
-          ) : (
-            <div className="text-text-secondary">Aucun</div>
-          )}
-        </div>
-        
-        {/* Dernière perf */}
-        <div className="bg-dark-surface rounded-xl p-4 border border-dark-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock size={18} className="text-primary" />
-            <span className="text-sm text-text-secondary">Dernier</span>
+        ) : (
+          /* Record + Dernier côte à côte si pas encore de données par salle */
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/30">
+              <div className="flex items-center gap-2 mb-2">
+                <Flame size={16} className="text-yellow-500" />
+                <span className="text-xs text-text-secondary uppercase tracking-wide">Record</span>
+              </div>
+              {personalRecord ? (
+                <>
+                  <div className="text-2xl font-bold">{personalRecord.weight} kg</div>
+                  <div className="text-sm text-text-secondary">× {personalRecord.reps} reps</div>
+                </>
+              ) : (
+                <div className="text-text-secondary text-sm">Aucun</div>
+              )}
+            </div>
+            <div className="bg-dark-surface rounded-xl p-4 border border-dark-border">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock size={16} className="text-primary" />
+                <span className="text-xs text-text-secondary uppercase tracking-wide">Dernier</span>
+              </div>
+              {lastPerformance ? (
+                <>
+                  <div className="text-2xl font-bold">{lastPerformance.weight} kg</div>
+                  <div className="text-sm text-text-secondary">× {lastPerformance.reps} reps</div>
+                </>
+              ) : (
+                <div className="text-text-secondary text-sm">Aucun</div>
+              )}
+            </div>
           </div>
-          {lastPerformance ? (
-            <>
-              <div className="text-2xl font-bold">{lastPerformance.weight} kg</div>
-              <div className="text-sm text-text-secondary">× {lastPerformance.reps} reps</div>
-            </>
-          ) : (
-            <div className="text-text-secondary">Aucun</div>
-          )}
-        </div>
+        )}
       </div>
       
       {/* Bouton ajouter */}
@@ -670,16 +738,22 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
                   })}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {day.sets.map((set, j) => (
-                    <div 
-                      key={j} 
-                      className="bg-dark-bg px-3 py-2 rounded-lg text-sm"
-                    >
-                      <span className="font-bold">{set.weight}</span>
-                      <span className="text-text-secondary"> kg × </span>
-                      <span className="font-bold">{set.reps}</span>
-                    </div>
-                  ))}
+                  {day.sets.map((set, j) => {
+                    const color = set.gymId ? getGymColor(set.gymId, gyms) : null
+                    return (
+                      <div
+                        key={j}
+                        className="flex items-center gap-1.5 bg-dark-bg px-3 py-2 rounded-lg text-sm"
+                      >
+                        {color && (
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        )}
+                        <span className="font-bold">{set.weight}</span>
+                        <span className="text-text-secondary"> kg × </span>
+                        <span className="font-bold">{set.reps}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -691,12 +765,24 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
       {showAddSet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60">
           <div className="w-full max-w-lg bg-dark-surface rounded-t-3xl p-6 animate-slide-up safe-area-bottom">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Nouvelle série</h2>
               <button onClick={() => setShowAddSet(false)} className="p-2">
                 <X size={24} />
               </button>
             </div>
+            {/* Salle active */}
+            {currentGym && gyms && gyms.length > 0 && (() => {
+              const gym = gyms.find(g => g.id === currentGym)
+              if (!gym) return null
+              const color = getGymColor(currentGym, gyms)
+              return (
+                <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl" style={{ backgroundColor: `${color}22` }}>
+                  <MapPin size={14} style={{ color }} />
+                  <span className="text-sm font-medium" style={{ color }}>{gym.name}</span>
+                </div>
+              )
+            })()}
             
             <div className="space-y-4">
               {/* Poids */}
