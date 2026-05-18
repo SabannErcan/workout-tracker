@@ -1,8 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { 
-  Moon, 
-  Sun, 
-  Bell, 
+import {
+  Bell,
   BellOff,
   Vibrate,
   Download,
@@ -140,41 +138,6 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
             </div>
           </SettingCard>
           
-          <SettingCard>
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                  {userSettings.theme === 'dark' ? <Moon size={20} className="text-purple-500" /> : <Sun size={20} className="text-yellow-500" />}
-                </div>
-                <div>
-                  <div className="font-medium">Thème</div>
-                  <div className="text-sm text-text-secondary">Apparence de l'app</div>
-                </div>
-              </div>
-              <div className="flex bg-dark-bg rounded-xl p-1">
-                <button
-                  onClick={() => updateSetting('theme', 'dark')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    userSettings.theme === 'dark' 
-                      ? 'bg-primary text-white' 
-                      : 'text-text-secondary'
-                  }`}
-                >
-                  Sombre
-                </button>
-                <button
-                  onClick={() => updateSetting('theme', 'light')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    userSettings.theme === 'light' 
-                      ? 'bg-primary text-white' 
-                      : 'text-text-secondary'
-                  }`}
-                >
-                  Clair
-                </button>
-              </div>
-            </div>
-          </SettingCard>
         </Section>
         
         {/* Section Salles de Sport */}

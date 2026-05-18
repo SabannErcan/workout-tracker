@@ -4,7 +4,6 @@ import {
   Plus,
   TrendingUp,
   Clock,
-  Weight,
   Target,
   Search,
   X,
@@ -13,7 +12,13 @@ import {
   Flame,
   History,
   Star,
-  MapPin
+  MapPin,
+  Shield,
+  Layers,
+  ChevronsUp,
+  Dumbbell,
+  Activity,
+  Zap,
 } from 'lucide-react'
 
 const GYM_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4']
@@ -26,14 +31,14 @@ function getGymColor(gymId, gyms) {
 import { exerciseLibrary } from '../data/exercises/index.js'
 import { loadData, saveData, STORAGE_KEYS } from '../utils/storage.js'
 
-// Catégories musculaires avec emojis et couleurs
+// Catégories musculaires avec icônes
 const MUSCLE_CATEGORIES = [
-  { id: 'chest', name: 'Pectoraux', emoji: '🫁', color: 'bg-red-500', muscles: ['Chest'] },
-  { id: 'back', name: 'Dos', emoji: '🔙', color: 'bg-blue-500', muscles: ['Back'] },
-  { id: 'shoulders', name: 'Épaules', emoji: '💪', color: 'bg-orange-500', muscles: ['Shoulders'] },
-  { id: 'arms', name: 'Bras', emoji: '💪', color: 'bg-purple-500', muscles: ['Biceps', 'Triceps', 'Forearms'] },
-  { id: 'legs', name: 'Jambes', emoji: '🦵', color: 'bg-green-500', muscles: ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Adductors'] },
-  { id: 'core', name: 'Abdos', emoji: '🎯', color: 'bg-yellow-500', muscles: ['Core', 'Abs'] },
+  { id: 'chest', name: 'Pectoraux', icon: Shield, color: 'bg-red-500', accent: '#EF4444', muscles: ['Chest'] },
+  { id: 'back', name: 'Dos', icon: Layers, color: 'bg-blue-500', accent: '#3B82F6', muscles: ['Back'] },
+  { id: 'shoulders', name: 'Épaules', icon: ChevronsUp, color: 'bg-orange-500', accent: '#F97316', muscles: ['Shoulders'] },
+  { id: 'arms', name: 'Bras', icon: Dumbbell, color: 'bg-purple-500', accent: '#A855F7', muscles: ['Biceps', 'Triceps', 'Forearms'] },
+  { id: 'legs', name: 'Jambes', icon: Zap, color: 'bg-green-500', accent: '#22C55E', muscles: ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Adductors'] },
+  { id: 'core', name: 'Abdos', icon: Target, color: 'bg-yellow-500', accent: '#EAB308', muscles: ['Core', 'Abs'] },
 ]
 
 /**
@@ -253,9 +258,11 @@ export default function ExerciseTracker({ workoutData }) {
             <span>Retour</span>
           </button>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 ${selectedCategory.color} rounded-xl flex items-center justify-center text-2xl`}>
-              {selectedCategory.emoji}
-            </div>
+            {(() => { const Icon = selectedCategory.icon; return (
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${selectedCategory.accent}22` }}>
+                <Icon size={24} strokeWidth={1.75} style={{ color: selectedCategory.accent }} />
+              </div>
+            ) })()}
             <div>
               <h1 className="text-xl font-bold">{selectedCategory.name}</h1>
               <p className="text-sm text-text-secondary">{exercises.length} exercices</p>
@@ -330,21 +337,31 @@ export default function ExerciseTracker({ workoutData }) {
           )}
           
           {/* Grille des catégories */}
-          <h2 className="text-lg font-bold mb-3">Catégories</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-text-secondary mb-3">Groupes musculaires</h2>
+          <div className="grid grid-cols-2 gap-3">
             {MUSCLE_CATEGORIES.map(cat => {
               const exerciseCount = exercisesByCategory[cat.id]?.length || 0
+              const Icon = cat.icon
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat)}
-                  className="bg-dark-surface rounded-2xl p-6 text-left hover:bg-dark-border transition-colors active:scale-95"
+                  className="bg-dark-surface rounded-2xl p-4 text-left active:scale-95 transition-transform overflow-hidden relative"
+                  style={{ borderWidth: 1, borderStyle: 'solid', borderColor: `${cat.accent}33` }}
                 >
-                  <div className={`w-14 h-14 ${cat.color} rounded-xl flex items-center justify-center text-3xl mb-3`}>
-                    {cat.emoji}
+                  {/* Accent glow top-right */}
+                  <div
+                    className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-xl opacity-30"
+                    style={{ backgroundColor: cat.accent }}
+                  />
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
+                    style={{ backgroundColor: `${cat.accent}22` }}
+                  >
+                    <Icon size={22} strokeWidth={1.75} style={{ color: cat.accent }} />
                   </div>
-                  <h3 className="font-bold text-lg">{cat.name}</h3>
-                  <p className="text-sm text-text-secondary">{exerciseCount} exercices</p>
+                  <h3 className="font-bold text-base">{cat.name}</h3>
+                  <p className="text-xs text-text-secondary mt-0.5">{exerciseCount} exercices</p>
                 </button>
               )
             })}

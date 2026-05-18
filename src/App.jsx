@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
-  Home,
   Dumbbell,
-  Calendar,
   Settings as SettingsIcon,
   Wifi,
   WifiOff,
-  Download,
   RefreshCw,
   Target
 } from 'lucide-react'
@@ -224,33 +221,26 @@ function App() {
       
       {/* Bottom Navigation - Toujours visible sauf pendant workout actif */}
       {!(currentWorkout && currentScreen === SCREENS.WORKOUT) && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-dark-surface border-t border-dark-border safe-area-bottom">
-          {/* Indicateur de statut en haut de la nav */}
+        <nav className="fixed bottom-0 left-0 right-0 border-t border-dark-border safe-area-bottom" style={{ backgroundColor: 'rgba(28,28,30,0.92)', backdropFilter: 'blur(20px)' }}>
           {(!isOnline || updateAvailable) && (
             <div className="absolute top-0 left-0 right-0 h-0.5">
               {!isOnline && <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 animate-pulse" />}
               {updateAvailable && <div className="h-full bg-gradient-to-r from-primary to-primary-active animate-pulse" />}
             </div>
           )}
-          <div className="flex items-center justify-around h-16">
-            <NavButton 
+          <div className="flex items-center h-16">
+            <NavButton
               icon={Target}
               label="Exercices"
               isActive={currentScreen === SCREENS.EXERCISES}
               onClick={() => navigate(SCREENS.EXERCISES)}
             />
-            <NavButton 
+            <NavButton
               icon={Dumbbell}
               label="Séances"
               isActive={currentScreen === SCREENS.WORKOUT || currentScreen === SCREENS.TEMPLATES}
               onClick={() => navigate(currentWorkout ? SCREENS.WORKOUT : SCREENS.TEMPLATES)}
               hasIndicator={!!currentWorkout}
-            />
-            <NavButton 
-              icon={Calendar}
-              label="Historique"
-              isActive={currentScreen === SCREENS.HISTORY}
-              onClick={() => navigate(SCREENS.HISTORY)}
             />
             <NavButton
               icon={SettingsIcon}
@@ -273,19 +263,29 @@ function App() {
 // Bouton de navigation
 function NavButton({ icon: Icon, label, isActive, onClick, hasIndicator }) {
   return (
-    <button 
+    <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center min-w-touch min-h-touch px-3 py-2 transition-colors relative ${
-        isActive ? 'text-primary' : 'text-text-secondary'
-      }`}
+      className="flex-1 flex flex-col items-center justify-center h-full py-2 transition-all relative"
     >
       <div className="relative">
-        <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+        <div
+          className={`flex items-center justify-center w-12 h-7 rounded-full transition-all ${
+            isActive ? 'bg-primary/15' : ''
+          }`}
+        >
+          <Icon
+            size={22}
+            strokeWidth={isActive ? 2.25 : 1.75}
+            className={isActive ? 'text-primary' : 'text-text-secondary'}
+          />
+        </div>
         {hasIndicator && (
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-success rounded-full" />
+          <span className="absolute top-0 right-1 w-2 h-2 bg-success rounded-full" />
         )}
       </div>
-      <span className="text-[10px] mt-1 font-medium">{label}</span>
+      <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-primary' : 'text-text-secondary'}`}>
+        {label}
+      </span>
     </button>
   )
 }
