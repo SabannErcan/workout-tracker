@@ -160,8 +160,10 @@ function App() {
         return (
           <History 
             workoutData={workoutData}
-            onRepeatWorkout={(id) => {
-              workoutData.repeatWorkout(id)
+            onStartWorkout={(exercises, gymId) => {
+              // Créer une nouvelle séance avec les exercices sélectionnés
+              workoutData.startWorkout(null, gymId)
+              // TODO: Ajouter les exercices à la séance en cours
               setCurrentScreen(SCREENS.WORKOUT)
             }}
           />

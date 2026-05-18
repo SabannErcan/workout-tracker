@@ -8,17 +8,21 @@ import {
   Search,
   X,
   Calendar,
-  Flame
+  Flame,
+  MapPin,
+  Copy,
+  Filter
 } from 'lucide-react'
 
 /**
  * Historique amélioré - Vue claire par jour
  */
-export default function History({ workoutData }) {
-  const { workoutHistory, userSettings } = workoutData
+export default function History({ workoutData, onStartWorkout }) {
+  const { workoutHistory, userSettings, gyms } = workoutData
   
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedDay, setExpandedDay] = useState(null)
+  const [selectedGym, setSelectedGym] = useState(null) // Filtre par salle
   
   // Grouper par jour
   const historyByDay = useMemo(() => {
@@ -32,6 +36,9 @@ export default function History({ workoutData }) {
             if (!grouped[dateKey]) {
               grouped[dateKey] = {
                 date: workout.date,
+                workoutId: workout.id,
+                gymId: workout.gymId,
+                duration: workout.duration,
                 exercises: {},
                 totalVolume: 0,
                 totalSets: 0
@@ -49,7 +56,8 @@ export default function History({ workoutData }) {
             
             grouped[dateKey].exercises[exName].sets.push({
               weight: set.weight,
-              reps: set.reps
+              reps: set.reps,
+              notes: set.notes
             })
             
             if (set.weight > grouped[dateKey].exercises[exName].bestWeight) {
@@ -72,22 +80,32 @@ export default function History({ workoutData }) {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
   }, [workoutHistory])
   
-  // Filtrer par recherche
+  // Filtrer par recherche et par salle
   const filteredHistory = useMemo(() => {
-    if (!searchQuery.trim()) return historyByDay
+    let filtered = historyByDay
     
-    const query = searchQuery.toLowerCase()
-    return historyByDay.filter(day => 
-      day.exercisesList.some(ex => 
-        ex.name.toLowerCase().includes(query)
-      )
-    ).map(day => ({
-      ...day,
-      exercisesList: day.exercisesList.filter(ex => 
-        ex.name.toLowerCase().includes(query)
-      )
-    }))
-  }, [historyByDay, searchQuery])
+    // Filtre par salle
+    if (selectedGym) {
+      filtered = filtered.filter(day => day.gymId === selectedGym)
+    }
+    
+    // Filtre par recherche
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(day => 
+        day.exercisesList.some(ex => 
+          ex.name.toLowerCase().includes(query)
+        )
+      ).map(day => ({
+        ...day,
+        exercisesList: day.exercisesList.filter(ex => 
+          ex.name.toLowerCase().includes(query)
+        )
+      }))
+    }
+    
+    return filtered
+  }, [historyByDay, searchQuery, selectedGym])
   
   // Stats globales
   const globalStats = useMemo(() => {
@@ -136,7 +154,8 @@ export default function History({ workoutData }) {
       </header>
       
       {/* Barre de recherche */}
-      <div className="p-4 bg-dark-surface border-b border-dark-border">
+      <div className="p-4 bg-dark-surface border-b border-dark-border space-y-3">
+        {/* Recherche */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
           <input
@@ -155,6 +174,41 @@ export default function History({ workoutData }) {
             </button>
           )}
         </div>
+        
+        {/* Filtre par salle */}
+        {gyms && gyms.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Filter size={16} className="text-text-secondary" />
+              <span className="text-sm text-text-secondary">Filtrer par salle</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              <button
+                onClick={() => setSelectedGym(null)}
+                className={`px-4 py-2 rounded-xl whitespace-nowrap transition-colors ${
+                  selectedGym === null
+                    ? 'bg-primary text-white'
+                    : 'bg-dark-bg text-text-secondary border border-dark-border'
+                }`}
+              >
+                Toutes
+              </button>
+              {gyms.map(gym => (
+                <button
+                  key={gym.id}
+                  onClick={() => setSelectedGym(gym.id)}
+                  className={`px-4 py-2 rounded-xl whitespace-nowrap transition-colors ${
+                    selectedGym === gym.id
+                      ? 'bg-primary text-white'
+                      : 'bg-dark-bg text-text-secondary border border-dark-border'
+                  }`}
+                >
+                  {gym.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Liste par jour */}
@@ -173,8 +227,10 @@ export default function History({ workoutData }) {
               <DayCard
                 key={day.dateKey}
                 day={day}
+                gyms={gyms}
                 isExpanded={expandedDay === day.dateKey}
                 onToggle={() => setExpandedDay(expandedDay === day.dateKey ? null : day.dateKey)}
+                onRepeat={onStartWorkout}
               />
             ))}
           </div>
@@ -187,7 +243,7 @@ export default function History({ workoutData }) {
 /**
  * Carte d'un jour
  */
-function DayCard({ day, isExpanded, onToggle }) {
+function DayCard({ day, gyms, isExpanded, onToggle, onRepeat }) {
   const date = new Date(day.date)
   const isToday = new Date().toDateString() === date.toDateString()
   const isYesterday = new Date(Date.now() - 86400000).toDateString() === date.toDateString()
@@ -195,6 +251,27 @@ function DayCard({ day, isExpanded, onToggle }) {
   const dateLabel = isToday ? "Aujourd'hui" : 
                     isYesterday ? 'Hier' : 
                     date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  
+  const gymName = gyms?.find(g => g.id === day.gymId)?.name
+  
+  const handleRepeat = () => {
+    if (onRepeat) {
+      // Créer une nouvelle séance avec les mêmes exercices
+      const exercisesToRepeat = day.exercisesList.map(ex => ({
+        exerciseId: ex.name,
+        name: ex.name
+      }))
+      onRepeat(exercisesToRepeat, day.gymId)
+    }
+  }
+  
+  const formatDuration = (seconds) => {
+    if (!seconds) return null
+    const hours = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    if (hours > 0) return `${hours}h ${mins}min`
+    return `${mins}min`
+  }
   
   return (
     <div className="bg-dark-surface rounded-2xl overflow-hidden">
@@ -204,18 +281,35 @@ function DayCard({ day, isExpanded, onToggle }) {
         className="w-full p-4 text-left"
       >
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold capitalize">{dateLabel}</h3>
               {isToday && (
                 <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full">
                   Aujourd'hui
                 </span>
               )}
+              {gymName && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                  <MapPin size={12} />
+                  {gymName}
+                </span>
+              )}
             </div>
-            <p className="text-sm text-text-secondary mt-1">
-              {day.exercisesList.length} exercice{day.exercisesList.length > 1 ? 's' : ''} • {day.totalSets} séries
-            </p>
+            <div className="flex items-center gap-3 mt-1 text-sm text-text-secondary flex-wrap">
+              <span>{day.exercisesList.length} exercice{day.exercisesList.length > 1 ? 's' : ''}</span>
+              <span>•</span>
+              <span>{day.totalSets} séries</span>
+              {day.duration && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={14} />
+                    {formatDuration(day.duration)}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
@@ -230,6 +324,20 @@ function DayCard({ day, isExpanded, onToggle }) {
       {/* Détails */}
       {isExpanded && (
         <div className="px-4 pb-4 space-y-3">
+          {/* Bouton refaire séance */}
+          {onRepeat && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRepeat()
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary py-3 rounded-xl transition-colors font-medium"
+            >
+              <Copy size={18} />
+              Refaire cette séance
+            </button>
+          )}
+          
           {day.exercisesList.map((exercise, i) => (
             <div key={i} className="bg-dark-bg rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
@@ -239,16 +347,20 @@ function DayCard({ day, isExpanded, onToggle }) {
                   <span className="text-primary font-bold">{exercise.bestWeight} kg</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-1.5">
                 {exercise.sets.map((set, j) => (
-                  <span 
-                    key={j}
-                    className="px-3 py-1.5 bg-dark-surface rounded-lg text-sm"
-                  >
-                    <span className="font-bold">{set.weight}</span>
-                    <span className="text-text-secondary"> kg × </span>
-                    <span className="font-bold">{set.reps}</span>
-                  </span>
+                  <div key={j} className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 bg-dark-surface rounded-lg text-sm">
+                      <span className="font-bold">{set.weight}</span>
+                      <span className="text-text-secondary"> kg × </span>
+                      <span className="font-bold">{set.reps}</span>
+                    </span>
+                    {set.notes && (
+                      <span className="text-xs text-text-secondary italic flex-1">
+                        "{set.notes}"
+                      </span>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
