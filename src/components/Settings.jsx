@@ -14,7 +14,9 @@ import {
   Check,
   X,
   AlertTriangle,
-  Dumbbell
+  Dumbbell,
+  Moon,
+  Sun,
 } from 'lucide-react'
 import { exportToJSON, importFromJSON, getStorageUsage, clearAllData } from '../utils/storage'
 import GymSelector from './GymSelector'
@@ -102,6 +104,46 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
       <main className="flex-1 overflow-y-auto pb-24">
         {/* Section Unités */}
         <Section title="Préférences">
+          {/* Thème */}
+          <SettingCard>
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: userSettings.theme === 'dark' ? 'rgba(88,86,214,0.2)' : 'rgba(255,204,0,0.2)' }}>
+                  {userSettings.theme === 'dark'
+                    ? <Moon size={20} style={{ color: '#5856D6' }} />
+                    : <Sun size={20} style={{ color: '#FFB800' }} />
+                  }
+                </div>
+                <div>
+                  <div className="font-medium">Thème</div>
+                  <div className="text-sm text-text-secondary">{userSettings.theme === 'dark' ? 'Mode sombre' : 'Mode clair'}</div>
+                </div>
+              </div>
+              <div className="flex bg-dark-bg rounded-xl p-1">
+                <button
+                  onClick={() => updateSetting('theme', 'dark')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    userSettings.theme === 'dark' ? 'bg-primary text-white' : 'text-text-secondary'
+                  }`}
+                >
+                  <Moon size={14} />
+                  Sombre
+                </button>
+                <button
+                  onClick={() => updateSetting('theme', 'light')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    userSettings.theme === 'light' ? 'bg-primary text-white' : 'text-text-secondary'
+                  }`}
+                >
+                  <Sun size={14} />
+                  Clair
+                </button>
+              </div>
+            </div>
+          </SettingCard>
+
+          {/* Unité de poids */}
           <SettingCard>
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
@@ -117,8 +159,8 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
                 <button
                   onClick={() => updateSetting('weightUnit', 'kg')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    userSettings.weightUnit === 'kg' 
-                      ? 'bg-primary text-white' 
+                    userSettings.weightUnit === 'kg'
+                      ? 'bg-primary text-white'
                       : 'text-text-secondary'
                   }`}
                 >
@@ -127,8 +169,8 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
                 <button
                   onClick={() => updateSetting('weightUnit', 'lbs')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    userSettings.weightUnit === 'lbs' 
-                      ? 'bg-primary text-white' 
+                    userSettings.weightUnit === 'lbs'
+                      ? 'bg-primary text-white'
                       : 'text-text-secondary'
                   }`}
                 >
@@ -137,7 +179,7 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
               </div>
             </div>
           </SettingCard>
-          
+
         </Section>
         
         {/* Section Salles de Sport */}

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { formatTimer, formatDuration } from '../utils/dateHelpers'
 import { formatVolume, calculateOneRepMax, detectPR } from '../utils/calculations'
+import { toDisplay, toKg, weightStep } from '../utils/units'
 import RestTimer from './RestTimer'
 import ExerciseLog from './ExerciseLog'
 
@@ -398,7 +399,7 @@ function ExerciseCard({
                   <div className="flex flex-wrap gap-2">
                     {lastPerformance.sets.slice(0, 4).map((set, i) => (
                       <span key={i} className="text-xs px-2 py-1 bg-dark-surface rounded">
-                        {set.reps}×{set.weight}{userSettings.weightUnit}
+                        {set.reps}×{toDisplay(set.weight, userSettings.weightUnit)}{userSettings.weightUnit}
                       </span>
                     ))}
                     {lastPerformance.sets.length > 4 && (
@@ -426,7 +427,7 @@ function ExerciseCard({
                           {sets.slice(0, 3).map((set, i) => (
                             <span key={i} className="text-xs px-1.5 py-0.5 rounded"
                               style={{ backgroundColor: `${color}22`, color }}>
-                              {set.reps}×{set.weight}{userSettings.weightUnit}
+                              {set.reps}×{toDisplay(set.weight, userSettings.weightUnit)}{userSettings.weightUnit}
                             </span>
                           ))}
                           {sets.length > 3 && (
@@ -489,7 +490,7 @@ function SetRow({ set, index, onDelete, onEdit, userSettings, isPR }) {
         <span className="w-8 text-sm font-medium text-text-secondary">{index + 1}</span>
         <span className="flex-1 text-center font-semibold">{set.reps}</span>
         <span className="flex-1 text-center font-semibold">
-          {set.weight}{userSettings.weightUnit}
+          {toDisplay(set.weight, userSettings.weightUnit)}{userSettings.weightUnit}
           {isPR && <span className="ml-1 text-xs text-success">PR</span>}
         </span>
         
@@ -531,7 +532,13 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
   
   // Si mode édition, pré-remplir avec les valeurs existantes
   const [reps, setReps] = useState(editingSet ? editingSet.reps.toString() : '')
-  const [weight, setWeight] = useState(editingSet ? editingSet.weight.toString() : exercise?.suggestedWeight?.toString() || '')
+  const [weight, setWeight] = useState(
+    editingSet
+      ? toDisplay(editingSet.weight, userSettings.weightUnit).toString()
+      : exercise?.suggestedWeight != null
+        ? toDisplay(exercise.suggestedWeight, userSettings.weightUnit).toString()
+        : ''
+  )
   const [rpe, setRpe] = useState(editingSet && editingSet.rpe ? editingSet.rpe.toString() : '')
   const [notes, setNotes] = useState(editingSet?.notes || '')
   
@@ -560,7 +567,7 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
       )
       if (exerciseInGym?.sets?.length > 0) {
         const lastSet = exerciseInGym.sets[exerciseInGym.sets.length - 1]
-        setWeight(lastSet.weight.toString())
+        setWeight(toDisplay(lastSet.weight, userSettings.weightUnit).toString())
         if (!reps) setReps(lastSet.reps.toString())
       }
     }
@@ -572,7 +579,7 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
     
     onSubmit({
       reps: parseInt(reps, 10),
-      weight: parseFloat(weight),
+      weight: toKg(parseFloat(weight), userSettings.weightUnit),
       rpe: rpe ? parseInt(rpe, 10) : null,
       notes: notes.trim() || null,
     })
@@ -668,7 +675,7 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
                   {byGym.map(({ gymId, gymName, sets }) => {
                     const color = getGymColor(gymId, gyms)
                     const isActive = gymId === currentGym
-                    const lastWeight = sets[sets.length - 1]?.weight
+                    const lastWeight = toDisplay(sets[sets.length - 1]?.weight, userSettings.weightUnit)
                     return (
                       <button
                         key={gymId}
@@ -684,7 +691,7 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
                       >
                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
                         <span className="text-xs font-medium" style={{ color }}>{gymName}</span>
-                        <span className="text-xs text-white font-bold">{lastWeight}{userSettings.weightUnit}</span>
+                        <span className="text-xs text-white font-bold">{lastWeight} {userSettings.weightUnit}</span>
                       </button>
                     )
                   })}
@@ -732,15 +739,15 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => adjustWeight(-2.5)}
+                onClick={() => adjustWeight(-weightStep(userSettings.weightUnit))}
                 className="w-12 h-12 bg-dark-elevated rounded-ios flex items-center justify-center text-sm"
               >
-                -2.5
+                -{weightStep(userSettings.weightUnit)}
               </button>
               <input
                 type="number"
                 inputMode="decimal"
-                step="0.5"
+                step={weightStep(userSettings.weightUnit)}
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="0"
@@ -748,10 +755,10 @@ function AddSetSheet({ exercise, editingSet, onSubmit, onClose, userSettings, wo
               />
               <button
                 type="button"
-                onClick={() => adjustWeight(2.5)}
+                onClick={() => adjustWeight(weightStep(userSettings.weightUnit))}
                 className="w-12 h-12 bg-dark-elevated rounded-ios flex items-center justify-center text-sm"
               >
-                +2.5
+                +{weightStep(userSettings.weightUnit)}
               </button>
             </div>
           </div>

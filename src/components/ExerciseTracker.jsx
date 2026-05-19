@@ -30,15 +30,17 @@ function getGymColor(gymId, gyms) {
 }
 import { exerciseLibrary } from '../data/exercises/index.js'
 import { loadData, saveData, STORAGE_KEYS } from '../utils/storage.js'
+import { ChestSVG, BackSVG, ShoulderSVG, ArmSVG, LegSVG, CoreSVG } from './MuscleIllustration'
+import { toDisplay, toKg } from '../utils/units'
 
-// Catégories musculaires avec icônes
+// Catégories musculaires avec illustrations SVG
 const MUSCLE_CATEGORIES = [
-  { id: 'chest', name: 'Pectoraux', icon: Shield, color: 'bg-red-500', accent: '#EF4444', muscles: ['Chest'] },
-  { id: 'back', name: 'Dos', icon: Layers, color: 'bg-blue-500', accent: '#3B82F6', muscles: ['Back'] },
-  { id: 'shoulders', name: 'Épaules', icon: ChevronsUp, color: 'bg-orange-500', accent: '#F97316', muscles: ['Shoulders'] },
-  { id: 'arms', name: 'Bras', icon: Dumbbell, color: 'bg-purple-500', accent: '#A855F7', muscles: ['Biceps', 'Triceps', 'Forearms'] },
-  { id: 'legs', name: 'Jambes', icon: Zap, color: 'bg-green-500', accent: '#22C55E', muscles: ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Adductors'] },
-  { id: 'core', name: 'Abdos', icon: Target, color: 'bg-yellow-500', accent: '#EAB308', muscles: ['Core', 'Abs'] },
+  { id: 'chest', name: 'Pectoraux', icon: Shield, accent: '#EF4444', SvgComponent: ChestSVG, muscles: ['Chest'] },
+  { id: 'back', name: 'Dos', icon: Layers, accent: '#3B82F6', SvgComponent: BackSVG, muscles: ['Back'] },
+  { id: 'shoulders', name: 'Épaules', icon: ChevronsUp, accent: '#F97316', SvgComponent: ShoulderSVG, muscles: ['Shoulders'] },
+  { id: 'arms', name: 'Bras', icon: Dumbbell, accent: '#A855F7', SvgComponent: ArmSVG, muscles: ['Biceps', 'Triceps', 'Forearms'] },
+  { id: 'legs', name: 'Jambes', icon: Zap, accent: '#22C55E', SvgComponent: LegSVG, muscles: ['Quadriceps', 'Hamstrings', 'Glutes', 'Calves', 'Adductors'] },
+  { id: 'core', name: 'Abdos', icon: Target, accent: '#EAB308', SvgComponent: CoreSVG, muscles: ['Core', 'Abs'] },
 ]
 
 /**
@@ -224,12 +226,13 @@ export default function ExerciseTracker({ workoutData }) {
           ) : (
             <div className="divide-y divide-dark-border">
               {searchResults.map(ex => (
-                <ExerciseListItem 
-                  key={ex.id} 
-                  exercise={ex} 
+                <ExerciseListItem
+                  key={ex.id}
+                  exercise={ex}
                   workoutHistory={workoutHistory}
                   isFavorite={favorites.includes(ex.id)}
                   onToggleFavorite={() => toggleFavorite(ex.id)}
+                  weightUnit={userSettings?.weightUnit}
                   onClick={() => {
                     setSelectedExercise(ex)
                     setSearchQuery('')
@@ -273,12 +276,13 @@ export default function ExerciseTracker({ workoutData }) {
         <div className="flex-1 overflow-y-auto">
           <div className="divide-y divide-dark-border">
             {exercises.map(ex => (
-              <ExerciseListItem 
-                key={ex.id} 
-                exercise={ex} 
+              <ExerciseListItem
+                key={ex.id}
+                exercise={ex}
                 workoutHistory={workoutHistory}
                 isFavorite={favorites.includes(ex.id)}
                 onToggleFavorite={() => toggleFavorite(ex.id)}
+                weightUnit={userSettings?.weightUnit}
                 onClick={() => setSelectedExercise(ex)}
               />
             ))}
@@ -323,12 +327,13 @@ export default function ExerciseTracker({ workoutData }) {
               </h2>
               <div className="space-y-2">
                 {favoriteExercises.map(ex => (
-                  <FavoriteExerciseItem 
+                  <FavoriteExerciseItem
                     key={ex.id}
                     exercise={ex}
                     workoutHistory={workoutHistory}
                     isFavorite={true}
                     onToggleFavorite={() => toggleFavorite(ex.id)}
+                    weightUnit={userSettings?.weightUnit}
                     onClick={() => setSelectedExercise(ex)}
                   />
                 ))}
@@ -342,34 +347,45 @@ export default function ExerciseTracker({ workoutData }) {
             {MUSCLE_CATEGORIES.map(cat => {
               const exerciseCount = exercisesByCategory[cat.id]?.length || 0
               const Icon = cat.icon
+              const SvgComp = cat.SvgComponent
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat)}
-                  className="bg-dark-surface rounded-2xl p-4 text-left active:scale-95 transition-transform overflow-hidden relative"
-                  style={{ borderWidth: 1, borderStyle: 'solid', borderColor: `${cat.accent}33` }}
+                  className="bg-dark-surface rounded-2xl text-left active:scale-95 transition-transform overflow-hidden relative"
+                  style={{ borderWidth: 1, borderStyle: 'solid', borderColor: `${cat.accent}44`, minHeight: '148px' }}
                 >
-                  {/* Accent glow top-right */}
+                  {/* Accent glow top-left */}
                   <div
-                    className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-xl opacity-30"
+                    className="absolute -top-6 -left-6 w-24 h-24 rounded-full blur-2xl opacity-25"
                     style={{ backgroundColor: cat.accent }}
                   />
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-                    style={{ backgroundColor: `${cat.accent}22` }}
-                  >
-                    <Icon size={22} strokeWidth={1.75} style={{ color: cat.accent }} />
+                  {/* Text content */}
+                  <div className="relative z-10 p-4 flex flex-col" style={{ minHeight: '148px' }}>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-auto"
+                      style={{ backgroundColor: `${cat.accent}22` }}
+                    >
+                      <Icon size={20} strokeWidth={1.75} style={{ color: cat.accent }} />
+                    </div>
+                    <div className="mt-3">
+                      <h3 className="font-bold text-sm leading-tight">{cat.name}</h3>
+                      <p className="text-xs text-text-secondary mt-0.5">{exerciseCount} exos</p>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-base">{cat.name}</h3>
-                  <p className="text-xs text-text-secondary mt-0.5">{exerciseCount} exercices</p>
+                  {/* SVG anatomical illustration */}
+                  <div className="absolute bottom-0 right-0 w-[68px] h-[95px] opacity-75 pointer-events-none">
+                    <SvgComp color={cat.accent} />
+                  </div>
                 </button>
               )
             })}
           </div>
           
           {/* Exercices récents */}
-          <RecentExercises 
-            workoutHistory={workoutHistory} 
+          <RecentExercises
+            workoutHistory={workoutHistory}
+            weightUnit={userSettings?.weightUnit}
             onSelect={(ex) => {
               const found = exerciseLibrary.find(e => e.id === ex.exerciseId || e.name === ex.name)
               if (found) setSelectedExercise(found)
@@ -386,7 +402,7 @@ export default function ExerciseTracker({ workoutData }) {
 /**
  * Item d'exercice dans la liste
  */
-function ExerciseListItem({ exercise, workoutHistory, onClick, isFavorite, onToggleFavorite }) {
+function ExerciseListItem({ exercise, workoutHistory, onClick, isFavorite, onToggleFavorite, weightUnit = 'kg' }) {
   // Trouver la dernière perf
   let lastWeight = null
   let lastReps = null
@@ -437,11 +453,11 @@ function ExerciseListItem({ exercise, workoutHistory, onClick, isFavorite, onTog
       {/* Stats */}
       {lastWeight && (
         <div className="text-right flex-shrink-0">
-          <div className="font-bold text-primary">{lastWeight} kg</div>
+          <div className="font-bold text-primary">{toDisplay(lastWeight, weightUnit)} {weightUnit}</div>
           <div className="text-xs text-text-secondary">{lastReps} reps</div>
         </div>
       )}
-      
+
       <ChevronRight size={20} className="text-text-secondary flex-shrink-0" />
     </button>
   )
@@ -450,7 +466,7 @@ function ExerciseListItem({ exercise, workoutHistory, onClick, isFavorite, onTog
 /**
  * Item favori sur la page d'accueil
  */
-function FavoriteExerciseItem({ exercise, workoutHistory, onClick, isFavorite, onToggleFavorite }) {
+function FavoriteExerciseItem({ exercise, workoutHistory, onClick, isFavorite, onToggleFavorite, weightUnit = 'kg' }) {
   // Trouver la dernière perf
   let lastWeight = null
   let lastReps = null
@@ -496,11 +512,11 @@ function FavoriteExerciseItem({ exercise, workoutHistory, onClick, isFavorite, o
         {/* Stats */}
         {lastWeight && (
           <div className="text-right flex-shrink-0">
-            <div className="font-bold text-primary">{lastWeight} kg</div>
+            <div className="font-bold text-primary">{toDisplay(lastWeight, weightUnit)} {weightUnit}</div>
             <div className="text-xs text-text-secondary">{lastReps} reps</div>
           </div>
         )}
-        
+
         <ChevronRight size={20} className="text-text-secondary flex-shrink-0" />
       </button>
     </div>
@@ -510,7 +526,7 @@ function FavoriteExerciseItem({ exercise, workoutHistory, onClick, isFavorite, o
 /**
  * Exercices récents
  */
-function RecentExercises({ workoutHistory, onSelect }) {
+function RecentExercises({ workoutHistory, onSelect, weightUnit = 'kg' }) {
   const recentExercises = useMemo(() => {
     const seen = new Set()
     const recent = []
@@ -556,7 +572,7 @@ function RecentExercises({ workoutHistory, onSelect }) {
             </div>
             {ex.lastSet && (
               <div className="text-right">
-                <div className="font-bold text-primary">{ex.lastSet.weight} kg</div>
+                <div className="font-bold text-primary">{toDisplay(ex.lastSet.weight, weightUnit)} {weightUnit}</div>
                 <div className="text-xs text-text-secondary">{ex.lastSet.reps} reps</div>
               </div>
             )}
@@ -571,8 +587,11 @@ function RecentExercises({ workoutHistory, onSelect }) {
  * Vue détail d'un exercice avec historique et ajout rapide
  */
 function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, workoutData, gyms, currentGym, onBack }) {
+  const weightUnit = workoutData.userSettings?.weightUnit || 'kg'
   const [showAddSet, setShowAddSet] = useState(false)
-  const [weight, setWeight] = useState(lastPerformance?.weight?.toString() || '')
+  const [weight, setWeight] = useState(
+    lastPerformance?.weight != null ? toDisplay(lastPerformance.weight, weightUnit).toString() : ''
+  )
   const [reps, setReps] = useState(lastPerformance?.reps?.toString() || '')
   const [sets, setSets] = useState('1')
 
@@ -603,7 +622,7 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
     workoutData.logQuickExercise({
       exerciseId: exercise.id,
       name: exercise.nameTranslations?.fr || exercise.name,
-      weight: parseFloat(weight),
+      weight: toKg(parseFloat(weight), weightUnit),
       reps: parseInt(reps),
       sets: numSets,
       date: new Date().toISOString(),
@@ -675,8 +694,8 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
                       <div className="text-xs text-text-secondary mt-0.5">dernière fois</div>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-white">{w}</span>
-                      <span className="text-sm text-text-secondary ml-1">kg</span>
+                      <span className="text-2xl font-bold text-white">{toDisplay(w, weightUnit)}</span>
+                      <span className="text-sm text-text-secondary ml-1">{weightUnit}</span>
                       <div className="text-xs text-text-secondary">× {r} reps</div>
                     </div>
                   </div>
@@ -694,7 +713,7 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
               </div>
               {personalRecord ? (
                 <>
-                  <div className="text-2xl font-bold">{personalRecord.weight} kg</div>
+                  <div className="text-2xl font-bold">{toDisplay(personalRecord.weight, weightUnit)} {weightUnit}</div>
                   <div className="text-sm text-text-secondary">× {personalRecord.reps} reps</div>
                 </>
               ) : (
@@ -708,7 +727,7 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
               </div>
               {lastPerformance ? (
                 <>
-                  <div className="text-2xl font-bold">{lastPerformance.weight} kg</div>
+                  <div className="text-2xl font-bold">{toDisplay(lastPerformance.weight, weightUnit)} {weightUnit}</div>
                   <div className="text-sm text-text-secondary">× {lastPerformance.reps} reps</div>
                 </>
               ) : (
@@ -765,8 +784,8 @@ function ExerciseDetail({ exercise, history, personalRecord, lastPerformance, wo
                         {color && (
                           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                         )}
-                        <span className="font-bold">{set.weight}</span>
-                        <span className="text-text-secondary"> kg × </span>
+                        <span className="font-bold">{toDisplay(set.weight, weightUnit)}</span>
+                        <span className="text-text-secondary"> {weightUnit} × </span>
                         <span className="font-bold">{set.reps}</span>
                       </div>
                     )
