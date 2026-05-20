@@ -40,7 +40,7 @@ export default function Settings({ workoutData, canInstall, isInstalled, onInsta
   const handleExport = () => {
     try {
       const data = exportToJSON()
-      const blob = new Blob([data], { type: 'application/json' })
+      const blob = new Blob(['﻿' + data], { type: 'application/json;charset=utf-8' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

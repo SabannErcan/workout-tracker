@@ -169,6 +169,7 @@ export function exportToJSON() {
     sessionTemplates: loadData(STORAGE_KEYS.SESSION_TEMPLATES, []),
     workoutHistory: loadData(STORAGE_KEYS.WORKOUT_HISTORY, []),
     userSettings: loadData(STORAGE_KEYS.USER_SETTINGS, DEFAULT_SETTINGS),
+    gyms: loadData(STORAGE_KEYS.GYMS, []),
     dataVersion: loadData(STORAGE_KEYS.DATA_VERSION, CURRENT_DATA_VERSION),
     exportDate: new Date().toISOString(),
   }
@@ -200,9 +201,13 @@ export function importFromJSON(jsonString) {
     if (data.userSettings) {
       saveData(STORAGE_KEYS.USER_SETTINGS, { ...DEFAULT_SETTINGS, ...data.userSettings })
     }
-    
+
+    if (data.gyms && Array.isArray(data.gyms)) {
+      saveData(STORAGE_KEYS.GYMS, data.gyms)
+    }
+
     saveData(STORAGE_KEYS.DATA_VERSION, CURRENT_DATA_VERSION)
-    
+
     return { success: true }
   } catch (error) {
     console.error('[Storage] Erreur import:', error)
